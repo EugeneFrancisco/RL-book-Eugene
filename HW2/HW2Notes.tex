@@ -14,5 +14,178 @@
 \maketitle
 
 \section*{Problem 3}
+\subsection*{Part A}
+First we will setup our MDP. Our state space for each time $t$ is $\mathcal{S}_t = \{(t, I_t)\}$ for $t\in \{0,\ldots, T\}$ and where $I_t$ is an integer that is the store inventory at time $t$. Our action space is $\mathcal{A} = \{p_1,\ldots, p_N\}$. Our non-terminating states are just the $\mathcal{S}_t$. The Bellman Optimality Equation tells us that the optimal value function is one that has
+\begin{align*}
+	V_t^*(s) = \max_{a\in A}\sum_{s', r}\mathcal{P}(r, s'| s_t, a_t)(r + \gamma\cdot V_{t + 1}^*(s'))\tag{3.a.1}.
+\end{align*}
+We know that $a_t = p_k$ for some $k$. For a given $s = (t, I_t), s_{t + 1} = (t + 1, I_{t + 1})$, $r$ is just the revenue, meaning $r = I_t - I_{t + 1}$ (note that $I_t - I_{t + 1} \geq 0$ because we never add any masks in). All that is left is to compute $\mathcal{P}(s_t, a_t, r, s') = \mathbb{P}(s_{t + 1} = s'| s_t, a_t)$.\\
+
+Suppose that $s_t = (t, I_t)$, $s' = (t + 1, I_{t + 1})$, and $a_t = p_\ell$. Then the customer demand was $dI_t = I_t - I_{t + 1}$.\\
+
+\noindent If $I_{t + 1} > 0$, then we have
+\begin{align*}
+	\P(s_{t + 1} = s'| s_t, a_t) &=\P(dt = I_t - I_{t + 1}| s_t = (t, I_t), a_t = p_\ell)\\
+	&= \frac{e^{-\lambda_\ell}\lambda_\ell^{dI_t}}{dI_t!}\\
+	&=\frac{\exp(-\lambda_\ell)\lambda_\ell^{I_t - I_{t + 1}}}{(I_t - I_{t + 1})!}.
+\end{align*}
+If $I_{t + 1} = 0$, then it is because $dI_t \geq I_t$, which means
+\begin{align*}
+	\P(s_{t + 1} = s'| s_t, a_t) &= \P(dt\geq I_t| s_t = (t, I_t), a_t = p_\ell) \\
+	&= \sum_{k = I_t}^\infty \frac{\exp(-\lambda)\lambda_\ell^{k}}{k!}\\
+	&=1 - \sum_{k = 0}^{I_t - 1}\frac{\exp(-\lambda)\lambda_\ell^{k}}{k!}.
+\end{align*}
+We can now substitute these into (3.a.1) (we don't substitute for $\mathcal{P}$ to avoid clutter). Note that the inner sum is only over $s'$ because the revenue for a given day (our reward) is determined by what $s_{t + 1}$ is. We further parametrize $s'$ by $I_{t + 1}$ because that is what determines what our reward and subsequent state is.
+\begin{align*}
+	V_t^*(s) &= \max_{p_k\in\{p_1, \ldots, p_N\}}\sum_{I_{t + 1} = 0}^{I_t}\big[\P(s_{t + 1} = (t + 1, I_{t+1})| s_t = (t, I_t), a_t = p_k)\\
+	&\cdot \big((I_{t} - I_{t + 1})p_k + \gamma V_t^*((t+1, I_{t + 1}))\big)\big]
+\end{align*}
+\subsection*{Part B}
+On day $T$, the revenue we can expect going forward is just what we expect to earn on day $T$ given an optimal price. Let $s_T = (t, I_T)$ and suppose that $D$ is the amount we sell (note that $D = \min(I_T, dI_T)$).
+\begin{align*}
+	V_T^*(s) = \max_{p_k \in \{p_1,\ldots, p_N\}}\sum_{\ell = 0}^{I_T}\P(D = \ell|s_T, a_T = p_k)p_kD
+\end{align*}
+where
+\begin{align*}
+	\P(D = \ell) = \begin{cases}
+		f_{\lambda_k}(\ell):&\text{if }\ell > 0\\
+		1 - F_{\lambda_k}(\ell - 1):&\text{if }\ell = 0.
+	\end{cases}
+\end{align*}
+using the same math as in Part A.
+\section*{Question 4}
+\subsection*{Part A}
+Expanding out our wealth, we have that
+\begin{align*}
+	W &= (1 + r)(1 - \pi) + (1 + R)\pi\\
+	&=1 + r - \pi r + \pi R.
+\end{align*}
+Since $R\sim\mathcal{N}(\mu, \sigma^2)$, we know that $\pi R\sim\mathcal{N}(\pi \mu, \pi^2\sigma^2)$, which means (because the left hand sum of $W$ is just a scalar) that
+\begin{align*}
+	W &\sim \mathcal{N}(1 + r - \pi r + \pi\mu, \pi^2\sigma^2)\\
+	&\sim \mathcal{N}(1 + r + \pi(\mu - r), \pi^2\sigma^2).\tag{4.a.1}
+\end{align*}
+We will use the fact that $W$ is distributed normally in a second. For now, notice that
+\begin{align*}
+	\mathbb{E}(U(x)) &= \mathbb{E}(\frac{1 - e^{-aW}}{a})\\
+	&= \frac{1}{a} - \frac{1}{a}(\mathbb{E}(e^{-aW})).\tag{4.a.2}
+\end{align*}
+Notice that $W$ is normally distributed and that $\mathbb{E}(e^{-aW})$ is precisely the definition of the MGF of a random variable evaluated at $-a$. If $X\sim \mathcal{N}(\mu', \sigma'^2)$, recall that the MGF is
+\begin{align*}
+	f(a) = e^{\mu' a + \frac{\sigma'^2a^2}{2}}. 
+\end{align*}
+Substituting in the appropriate mean and variance from (4.a.1), we have
+\begin{align*}
+	\mathbb{E}(e^{aW}) = \exp[a(1 + r + \pi(\mu - r)) + \frac{\pi^2\sigma^2a^2}{2}].
+\end{align*}
+Using this in $(4.a.2)$, we get
+\begin{align*}
+	\mathbb{E}(U(W)) = \frac{1}{a} - \frac{\exp[-a(1 + r + \pi(\mu - r)) + \frac{\pi^2\sigma^2a^2}{2}]}{a}.\tag{4.a.3}
+\end{align*}
+We're now ready to solve for  $W_{CE}$. Recall the definition of $W_{CE}$ as
+\begin{align*}
+	U(W_{CE}) = \mathbb{E}(U(W)).
+\end{align*}
+Using (4.a.3), we have
+\begin{align*}
+	\implies & &\frac{1}{a} - \frac{\exp(-aW_{CE})}{a} &= \frac{1}{a} - \frac{\exp[-a(1 + r + \pi(\mu - r)) + \frac{\pi^2\sigma^2a^2}{2}]}{a} & &\\
+	\implies & & \exp(-aW_{CE})) &= \exp[-a(1 + r + \pi(\mu - r)) + \frac{\pi^2\sigma^2a^2}{2}]\\
+	\implies & & W_{CE} &= (1 + r + \pi(\mu - r)) - \frac{\pi^2\sigma^2a}{2}.\tag{4.a.4}
+\end{align*}
+\subsection*{Part B}
+Recall from part A (4.a.3) that
+\begin{align*}
+	\mathbb{E}(U(W)) = \frac{1}{a} - \frac{\exp(-a(1 + r + \pi(\mu - r)) + \frac{\pi^2\sigma^2a^2}{2})}{a}.
+\end{align*}
+Note that by 4.a.1, $\mathbb{E}(W) = 1 + r + \pi(\mu - r)$ and $\text{var}(W) = \pi^2\sigma^2$. Taking the derivative with respect to $\pi$ and setting that equal to 0, we have
+\begin{align*}
+	& & 0 &=\frac{d}{d\pi}\left[\frac{1}{a} - \frac{\exp(-a(1 + r + \pi(\mu - r)) + \frac{\pi^2\sigma^2a^2}{2})}{a}\right] & &\\
+	\implies & & 0 &= -\frac{1}{a}\cdot\frac{d}{d\pi}\exp(-a(1 + r + \pi(\mu - r)) + \frac{\pi^2\sigma^2a^2}{2})\\
+	\implies & & 0 &=-\frac{1}{a}\exp\left(-a\mathbb{E}(W) + \frac{\text{var}(W)a^2}{2}\right)\frac{d}{d\pi}\left(-a(1 + r + \pi(\mu - r)) + \frac{\pi^2\sigma^2a^2}{2}\right)\\
+	\implies & & 0 &= \exp\left(-a\mathbb{E}(W) + \frac{\text{var}(W)a^2}{2}\right)\left[(\mu - r) - \pi\sigma^2a \right].
+\end{align*}
+Noting in the last line that $\exp$ is nonnegative, we have
+\begin{align*}
+	& & 0 &= \left[(\mu - r) - \pi\sigma^2a \right] & &\\
+	\implies & & \pi &= \frac{\mu - r}{\sigma^2a}. & &
+\end{align*}
+So our optimal investment fraction is 
+\begin{equation*}
+	\displaystyle\pi^* = \frac{\mu - r}{\sigma^2a}.\tag{4.b.1}
+\end{equation*}
+
+
+
+
+\subsection*{Part C}
+Recall the definition of absolute risk premium, we have
+\begin{align*}
+	W_{CE} = \mathbb{E}(W) - \pi_A.
+\end{align*}
+Matching up terms with (4.a.4), and recalling that $\mathbb{E}(W) = 1 + r + \pi(\mu - r)$ from the distribution of $W$ in part A, we see that
+\begin{align*}
+	\pi_A = \frac{\pi^2\sigma^2a}{2}.
+\end{align*}
+\subsection*{Part D}
+We have that $r = 0.02$, $\mu = 0.08$, $\sigma^2 = 0.04$, and $a = 3$. Using (4.b.1),
+\begin{align*}
+	\pi^* &= \frac{0.08 - 0.02}{0.04\cdot 3}\\
+	&= 0.5.
+\end{align*}
+Using (4.a.4), and assuming we are using an optimal allocation strategy, we have
+\begin{align*}
+	W_{CE} &= (1 + 0.02 + 0.5(0.08 - 0.02)) - \frac{0.5^2\cdot 0.04 \cdot 3}{2}\\
+	&= \underbrace{1.05}_{\E(W)} - \underbrace{0.0075}_{\pi_A}\\
+	&= 1.0425
+\end{align*}
+Using Part C and realizing that the risk premium is just the second sum of our calculation for $W_{CE}$, we have
+\begin{align*}
+	\pi_A = 0.0075.
+\end{align*}
+\textbf{Interpretation:} The proportion of my portfolio that I should allocate to the risky asset to maximize my expected utility of wealth $\mathbb{E}(U(W))$ is precisely half of my portfolio.\\
+
+ Since $U(W_{CE}) = \mathbb{E}(U(W))$, $W_{CE}$ is precisely how much money you'd have to give me so that the amount I value $W_{CE}$ is the same as the expected utility from the investments. In other words, paying me $1.0425$ dollars right now gives me the same value as investing my money.\\
+ 
+In practice the expected value of my investment $\mathbb{E}(W)$ is different from our certainty equivalent wealth $W_{CE}$. The latter being the amount of money you'd have to give me so that I have no preference between receiving $W_{CE}$ and pursuing the risky investment. Instead, $W_{CE}$ is slightly lower because I'm ok with receiving a little less money if my return is certain.\\
+
+The difference between $\mathbb{E}(W)$ and $W_{CE}$ is $\pi_A$, is the risk premium. In this case, \$0.0075 is how much I am willing to pay on top of $\mathbb{E}(W)$ such that pursuing the risky investment with $\pi^*$ is as enticing as $W_{CE}$ riskless.\\
+
+Finally, notice that the risk premium is proportional to changes in our risk tolerance $a$ and the variance $\sigma^2$ while the allocation percentage is inversely proportional to $a$ and $\sigma^2$. This makes sense since we expect our risk premium to go up when the the investment is riskier (more variance) or when we are less tolerant of risk; and we expect that the amount we invest in the risky asset goes down when our risk tolerance goes down ($a$ goes up) or the riskiness of the investment goes up (variance). 
+
+\subsection*{Part E}
+Using the hint, we know that
+\begin{align*}
+	\mathbb{E}(U(W)) &= \frac{1}{\beta - \alpha}\int_{\alpha}^{\beta}U(W)dW.\tag{4.e.1}
+\end{align*}
+First we'll just solve for the inner integral.
+\begin{align*}
+	\int_{x_1}^{x_2}U(x)dx &= \int_{x_1}^{x_2}\left(\frac{1 - e^{-ax}}{a}\right)dx\\
+	&=\left.\frac{x}{a} + \frac{e^{-ax}}{a^2}\right|_{x_1}^{x_2}.\tag{4.e.2}
+\end{align*}
+Using (4.e.2) in (4.e.1), and substituting for $x_1$ and $x_2$, 
+\begin{align*}
+	\mathbb{E}(U(W)) &= \frac{1}{\beta - \alpha}\left(\left.\frac{x}{a} + \frac{e^{-ax}}{a^2}\right|_{\alpha}^{\beta}\right)\\
+	&=\frac{1}{\beta - w_{\alpha}}\left(\frac{\beta}{a} - \frac{\alpha}{a} + \frac{\exp(-a\beta)}{a^2} - \frac{\exp(-a\alpha)}{a^2}\right)\\
+	&=\frac{1}{\beta - w_{\alpha}}\left(\frac{\beta - \alpha}{a} + \frac{\exp(-a\beta) - \exp(-a\alpha)}{a^2}\right)\\
+	&= \frac{1}{a} + \frac{\exp(-a\beta) - \exp(-a\alpha)}{a^2(\beta - \alpha)}
+\end{align*}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \end{document}
