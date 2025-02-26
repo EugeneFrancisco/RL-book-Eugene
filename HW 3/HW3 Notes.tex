@@ -1,0 +1,86 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{newStyle}
+\usepackage{titling}
+
+\setlength{\droptitle}{-4em}
+
+\title{HW 3 CME 241}
+\author{Eugene Francisco}
+\date{Feb 2025}
+
+\begin{document}
+
+\maketitle
+
+\section*{Problem 8}
+\subsection*{Modelling the MDP:}
+\textbf{States:} Each state $s\in \S$ is a set of two vectors $s = \{h, \tau \}$, where $h\subseteq \{0,\ldots, N\}^K$ is the vector of those die in your hand, where the $i$th entry is the number of die with side $i$ facing up you have. Meanwhile, $\tau \subseteq \{0,\ldots, N\}^K$ are those dice on the table, defined similarly. Note that $\sum_{i = 1}^n h_i + \tau_i = N$, the total number of die. Non-terminating states are those where $\tau$ contains at least one non-zero element. Terminating states are those where $\Vert\tau\Vert = 0$.\\
+
+\noindent\textbf{Actions:} Given a state $s = \{h_t, \tau_t\}$, each action we can take is a vector $c\subseteq \{0,\ldots, N\}^K$ such that $c_i \leq \tau_i$ for each $i\in \{1,\ldots, K\}$, where $c_i$ represents the number of die with face $i$ we take from the table. Note that after choosing $c_i$, we define $h_{t + 1} = h_t + c_t$, where the summation is component wise.\\
+
+\noindent\textbf{Rewards:} Given a state $s_t = \{h_t, \tau_t\}$ and an action $c_t$ of chosen dice to include in $h_{t + 1}$, the reward is $0$ if $s_t$ is non-terminal. If $s_t$ terminal, then the reward is $\sum_{i = 1}^K i\cdot h_i$ if and only if $h_1 \geq C$. If $h_1 < C$, the reward is $0$.\\
+
+\noindent\textbf{State-Transition Probabilities:} Suppose we are in a state $s_t = \{h^{(t)}, \tau^{(t)}\}$ and we take the action $c^{(t)}$. Notice the number of die on the table after the action is precisely $\ell := \sum_{i = 1}^K\tau^{(t)}_i - c^{(t)}_i$. Now consider some possible next state $\{h'^{(t + 1)}, \tau'^{(t + 1)}\}$. Then
+\begin{align*}
+	\PP(s_{t + 1} = \{\H_{t + 1}, \T_{t + 1}\} | s_t, a) = \begin{cases}
+		0 &: \text{if }\ell \neq \sum_{i = 1}^K\tau'^{(t + 1)}\\
+		\displaystyle	\frac{1}{K^{\ell}}\prod_{i = 1}^K\frac{\ell!}{\tau'^{(t + 1)}_i}&: \text{if } \ell = \tau'^{(t + 1)}.
+	\end{cases}
+\end{align*}
+The probablity comes from the probability formula for a multinomial distribution, since each $\tau'^{(t + 1)}_i$  can be thought of as a random variable describing how many die facing $i$ were rolled among $N$ die, which means that $\PP(\tau'^{(t + 1)}_i = d_1,\ldots, \tau'^{(t + 1)}_K = d_K) = \frac{1}{K^{\ell}}\prod_{i = 1}^K\frac{\ell!}{d_i}$, where $\ell$ is the number of dice we throw.\\
+
+\noindent\textbf{Discount Rate:} We use $\gamma = 1$ as the discount rate.
+
+\section*{MC Proof}
+Recall that the definition of the MC return is
+\begin{align*}
+	G_t = R_{t + 1} + \gamma R_{t + 2} + \cdots + \gamma^{T - 1 - t}R_T.
+\end{align*}
+We want to show that $G_t - V(S_t) = \sum_{u = t}^{T - 1}\gamma^{u - t}[R_{u + 1} + \gamma V(S_{u + 1}) - V(S_u)]$. Rearranging the RHS of what we want to show, we see
+\begin{align*}
+	\sum_{u = t}^{T - 1}\gamma^{u - t}[R_{u + 1} + \gamma V(S_{u + 1}) - V(S_u)] &= \underbrace{\sum_{u = t}^{T - 1}\gamma^{u - t}R_{u + 1}}_{\triangle} + \underbrace{\sum_{u = t}^{T - 1}\gamma^{u - t + 1}V(S_{u + 1}) - \gamma^{u - t}V(S_{u})}_{\star}
+\end{align*}
+Notice that $\star$ is a telescoping sum which leaves behind only $-\gamma^0V(S_t)= -V(S_t)$, while $\triangle$ is precisely the definition of the return $G_t$ from above. Thus
+\begin{align*}
+	G_t - S(S_t) = \sum_{u = t}^{T - 1}\gamma^{u - t}[R_{u + 1} + \gamma V(S_{u + 1}) - V(S_u)]
+\end{align*}
+as we wish to show. $\Box$
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
